@@ -18,7 +18,10 @@ class _RiddleCardState extends State<RiddleCard> {
   @override
   void initState() {
     super.initState();
-    _deviceId = getDeviceIDweb();
+  }
+
+  Future<void> initialize() async {
+    _deviceId = await getDeviceUUID();
   }
 
   void _toggleLike() {

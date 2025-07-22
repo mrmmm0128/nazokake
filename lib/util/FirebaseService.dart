@@ -33,7 +33,7 @@ class FirestoreService {
   }
 
   Future<void> toggleLike(String riddleId, List<String> currentLikes) async {
-    final id = await getDeviceIDweb();
+    final id = await getDeviceUUID();
     final docRef = _db.collection('riddles').doc(riddleId);
 
     if (currentLikes.contains(id)) {
