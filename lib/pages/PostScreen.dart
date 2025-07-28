@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nazokake/util/FirebaseService.dart';
+import 'package:nazokake/util/GetDeviceId.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({super.key});
@@ -20,10 +21,17 @@ class _PostScreenState extends State<PostScreen> {
 
     if (first.isEmpty || second.isEmpty || answer.isEmpty) return;
 
-    final question = "$firstとかけまして$secondとかけます。その心は";
-    final fullAnswer = "$answerでしょう。";
+    final question1 = first;
+    final question2 = second;
+    final fullAnswer = answer;
+    final deviceId = await getDeviceUUID(); // デバイスIDを取得
 
-    await FirestoreService().addRiddle(question, fullAnswer);
+    await FirestoreService().addRiddle(
+      question1,
+      question2,
+      fullAnswer,
+      deviceId,
+    );
 
     _firstTopicController.clear();
     _secondTopicController.clear();
@@ -35,28 +43,69 @@ class _PostScreenState extends State<PostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("なぞかけ投稿")),
+      backgroundColor: Theme.of(context).colorScheme.secondary,
+      appBar: AppBar(
+        title: const Text("なぞかけ投稿"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text("〇〇とかけまして〇〇とかけます。その心は〇〇でしょう。"),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _firstTopicController,
-              decoration: const InputDecoration(labelText: '前半のお題（例：すし）'),
-            ),
-            TextField(
-              controller: _secondTopicController,
-              decoration: const InputDecoration(labelText: '後半のお題（例：ITエンジニア）'),
-            ),
-            TextField(
-              controller: _answerController,
-              decoration: const InputDecoration(labelText: '答え（例：ネタが重要）'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _postRiddle, child: const Text('投稿')),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const Text(
+                "なぞかけを投稿しましょう！",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text("例：\n牛丼とかけまして海とときます。\nそのこころは どちらもなみ（並・波）があるでしょう。"),
+              const SizedBox(height: 16),
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _firstTopicController,
+                        decoration: const InputDecoration(
+                          labelText: '前半のお題',
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                        ),
+                      ),
+                      Text('とかけまして'),
+                      TextField(
+                        controller: _secondTopicController,
+                        decoration: const InputDecoration(
+                          labelText: '後半のお題',
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                        ),
+                      ),
+                      Text('とときます。そのこころは、どちらも'),
+                      TextField(
+                        controller: _answerController,
+                        decoration: const InputDecoration(labelText: '答え'),
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _postRiddle,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            foregroundColor: Colors.black,
+                          ),
+                          child: const Text('投稿'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

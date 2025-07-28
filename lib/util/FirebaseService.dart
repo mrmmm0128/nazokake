@@ -5,14 +5,34 @@ import 'package:nazokake/util/GetDeviceId.dart';
 
 class FirestoreService {
   final _db = FirebaseFirestore.instance;
+  final deviceId = getDeviceUUID();
 
-  Future<void> addRiddle(String question, String answer) async {
+  Future<void> addRiddle(
+    String question1,
+    String question2,
+    String answer,
+    String deviceId,
+  ) async {
     await _db.collection('riddles').add({
-      'question': question,
+      'post_deviceId': deviceId,
+      'question1': question1,
+      'question2': question2,
       'answer': answer,
       'likes': [],
       'timestamp': Timestamp.now(),
     });
+  }
+
+  Stream<List<Riddle>> getMyRiddles(String deviceId) {
+    return _db
+        .collection('riddles')
+        .where('post_deviceId', isEqualTo: deviceId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Riddle.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Stream<List<Riddle>> getRiddlesSorted(SortOption sort) {
@@ -30,6 +50,10 @@ class FirestoreService {
           )
           .toList(),
     );
+  }
+
+  Future<void> deleteRiddle(String riddleId) async {
+    await _db.collection('riddles').doc(riddleId).delete();
   }
 
   Future<void> toggleLike(String riddleId, List<String> currentLikes) async {

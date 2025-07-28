@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  flutter_launcher_icons: ^0.13.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -90,3 +92,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons: 
+  image_path_android: assets/icons/ios_icon.jpg
+  adaptive_icon_background: '#000000' #iconの背景色
+  adaptive_icon_foreground: assets/icons/ios_icon.jpg
+  image_path_ios: assets/icons/ios_icon.jpg
+  android: true
+  adaptive_icon_padding: true
+  min_sdk_android: 30 #Androidの最小SDKバージョン
+  ios: true   

@@ -15,9 +15,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'nazokake share',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.light(
+          primary: Color.fromARGB(255, 250, 176, 232), // 任意の色
+          secondary: Color.fromARGB(255, 255, 232, 255),
+          onPrimary: Colors.white,
+        ),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontSize: 18, color: Colors.black),
+          bodyMedium: TextStyle(fontSize: 16, color: Colors.grey[800]),
+        ),
       ),
       home: TimelineScreen(),
     );
