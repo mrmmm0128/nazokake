@@ -54,8 +54,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 builder: (context) => AlertDialog(
                   title: const Text("遊び方"),
                   content: const Text(
-                    "なぞかけを投稿して、みんなと楽しもう！\n"
-                    "タップで答えを表示、いいねで応援できます。",
+                    "なぞかけを投稿して、みんなと楽しもう！\n\n"
+                    "タップで答えを表示\nいいねで応援できます。\n\n引用機能も実装予定！",
                   ),
                   actions: [
                     TextButton(

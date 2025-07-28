@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nazokake/model/RiddleModel.dart';
+import 'package:nazokake/model/kansu.dart';
 import 'package:nazokake/util/FirebaseService.dart';
 import 'package:nazokake/util/GetDeviceId.dart';
 
@@ -72,15 +73,16 @@ class _RiddleCardState extends State<RiddleCard> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  // 投稿者はなぞかけを削除できる
-                  if (widget.riddle.postDeviceId == _deviceId)
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.grey,
-                        size: 20,
-                      ),
-                      onPressed: () async {
+
+                  // メニューバー
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onSelected: (value) async {
+                      if (value == '削除') {
                         // 確認ダイアログを表示
                         showDialog(
                           context: context,
@@ -113,8 +115,19 @@ class _RiddleCardState extends State<RiddleCard> {
                             );
                           },
                         );
-                      },
-                    ),
+                      } else if (value == '通報') {
+                        // 通報処理
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('通報機能（未実装）')),
+                        );
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      if (widget.riddle.postDeviceId == _deviceId)
+                        const PopupMenuItem(value: '削除', child: Text('削除')),
+                      const PopupMenuItem(value: '通報', child: Text('通報')),
+                    ],
+                  ),
                 ],
               ),
               if (_showAnswer)
@@ -129,7 +142,7 @@ class _RiddleCardState extends State<RiddleCard> {
                     children: [
                       Icon(Icons.access_time, size: 16),
                       Text(
-                        ' ${widget.riddle.timestamp.toLocal().toString().substring(0, 16)}',
+                        ' ${formatTimeAgo(widget.riddle.timestamp)}',
                         style: const TextStyle(fontSize: 12),
                       ),
                     ],
@@ -139,15 +152,15 @@ class _RiddleCardState extends State<RiddleCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // 通報ボタン
+                      // 引用
                       IconButton(
                         onPressed: () {
                           // 保存機能の実装
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('通報ボタン（未実装）')),
+                            const SnackBar(content: Text('引用ボタン（未実装）')),
                           );
                         },
-                        icon: const Icon(Icons.warning_amber_rounded),
+                        icon: const Icon(Icons.format_quote, size: 16),
                       ),
                       //　保存
                       IconButton(
