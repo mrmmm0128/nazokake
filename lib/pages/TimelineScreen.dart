@@ -83,6 +83,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
           return StreamBuilder<List<Riddle>>(
             stream: _sort == SortOption.onlyMine
                 ? FirestoreService().getMyRiddles(deviceUUIDSnapshot.data!)
+                : _sort == SortOption.saved
+                ? FirestoreService().getSavedRiddles(deviceUUIDSnapshot.data!)
                 : FirestoreService().getRiddlesSorted(_sort),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {

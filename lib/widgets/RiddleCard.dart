@@ -38,6 +38,11 @@ class _RiddleCardState extends State<RiddleCard> {
     });
   }
 
+  Future<void> saveRiddle() async {
+    await FirestoreService().saveRiddle(widget.riddle.id, _deviceId);
+    setState(() {}); // 保存後に再描画
+  }
+
   @override
   Widget build(BuildContext context) {
     var isLiked = widget.riddle.likes.contains(_deviceId);
@@ -66,11 +71,42 @@ class _RiddleCardState extends State<RiddleCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "${widget.riddle.question1} とかけまして\n${widget.riddle.question2} とときます。",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: widget.riddle.question1,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextSpan(
+                            text: " とかけまして\n",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          TextSpan(
+                            text: widget.riddle.question2,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextSpan(
+                            text: " とときます。",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -133,7 +169,27 @@ class _RiddleCardState extends State<RiddleCard> {
               if (_showAnswer)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text("そのこころは、どちらも ${widget.riddle.answer}"),
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'そのこころは、どちらも\n',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        TextSpan(
+                          text: widget.riddle.answer,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               Row(
                 children: [
@@ -160,22 +216,36 @@ class _RiddleCardState extends State<RiddleCard> {
                             const SnackBar(content: Text('引用ボタン（未実装）')),
                           );
                         },
-                        icon: const Icon(Icons.format_quote, size: 16),
+                        icon: const Icon(
+                          Icons.format_quote,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
                       ),
                       //　保存
-                      IconButton(
-                        icon: const Icon(Icons.save_rounded, size: 16),
-                        onPressed: () {
-                          // 保存機能の実装
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('保存ボタン（未実装）')),
+                      FutureBuilder<bool>(
+                        future: FirestoreService().isRiddleSaved(
+                          widget.riddle.id,
+                          _deviceId,
+                        ),
+                        builder: (context, snapshot) {
+                          var isSaved = snapshot.data ?? false;
+                          return IconButton(
+                            icon: Icon(
+                              Icons.save,
+                              size: 16,
+                              color: isSaved ? primaryColor : Colors.grey,
+                            ),
+                            onPressed: () {
+                              saveRiddle();
+                            },
                           );
                         },
                       ),
                       IconButton(
                         icon: Icon(
                           isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? Colors.red : null,
+                          color: isLiked ? Colors.red : Colors.grey,
                           size: 16,
                         ),
                         onPressed: _toggleLike,
