@@ -5,7 +5,7 @@ import 'package:nazokake/util/FirebaseService.dart';
 import 'package:nazokake/util/GetDeviceId.dart';
 import 'package:nazokake/widgets/RiddleCard.dart';
 
-enum SortOption { newest, mostLiked, onlyMine }
+enum SortOption { newest, mostLiked, onlyMine, saved }
 
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
@@ -43,6 +43,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 value: SortOption.onlyMine,
                 child: Text("あなたの投稿"),
               ),
+              const PopupMenuItem(
+                value: SortOption.saved,
+                child: Text("保存した投稿"),
+              ),
             ],
           ),
           // 遊び方ボタン
@@ -55,7 +59,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   title: const Text("遊び方"),
                   content: const Text(
                     "なぞかけを投稿して、みんなと楽しもう！\n\n"
-                    "タップで答えを表示\nいいねで応援できます。\n\n引用機能も実装予定！",
+                    "タップで答えを表示\nいいねで応援できます。\n保存すればすぐに見返すことができます\n\n引用機能も実装予定！",
                   ),
                   actions: [
                     TextButton(

@@ -35,6 +35,18 @@ class FirestoreService {
         );
   }
 
+  Stream<List<Riddle>> getSavedRiddles(String deviceId) {
+    return _db
+        .collection('saved_riddles')
+        .where('deviceId', isEqualTo: deviceId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Riddle.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
+  }
+
   Stream<List<Riddle>> getRiddlesSorted(SortOption sort) {
     Query query = _db.collection('riddles');
     if (sort == SortOption.newest) {
