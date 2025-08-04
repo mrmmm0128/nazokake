@@ -5,7 +5,7 @@ class Riddle {
   final String question1;
   final String question2;
   final String answer;
-  final List<String> likes;
+  late final List<String> likes;
   final DateTime timestamp;
   final String postDeviceId;
 
@@ -27,7 +27,7 @@ class Riddle {
       answer: data['answer'],
       likes: List<String>.from(data['likes'] ?? []),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
-      postDeviceId: data['post_deviceId'],
+      postDeviceId: data['post_deviceId'] ?? '',
     );
   }
 }

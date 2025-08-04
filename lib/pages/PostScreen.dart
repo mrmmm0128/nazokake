@@ -172,6 +172,8 @@ class _PostScreenState extends State<PostScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              //Image.asset('assets/images/image1.jpeg'),
             ],
           ),
         ),

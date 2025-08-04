@@ -27,14 +27,18 @@ class _RiddleCardState extends State<RiddleCard> {
     setState(() {}); // デバイスIDを取得したら再描画
   }
 
-  void _toggleLike() {
-    FirestoreService().toggleLike(widget.riddle.id, widget.riddle.likes);
+  void _toggleLike() async {
+    // Firestore のデータを更新
+    await FirestoreService().toggleLike(widget.riddle.id, widget.riddle.likes);
+
+    // Firestore から最新のデータを取得して同期
+    final updatedRiddle = await FirestoreService().getRiddleById(
+      widget.riddle.id,
+    );
+
+    // UI を更新
     setState(() {
-      if (widget.riddle.likes.contains(_deviceId)) {
-        widget.riddle.likes.remove(_deviceId);
-      } else {
-        widget.riddle.likes.add(_deviceId);
-      }
+      widget.riddle.likes = updatedRiddle.likes;
     });
   }
 

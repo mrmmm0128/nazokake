@@ -138,4 +138,16 @@ class FirestoreService {
       });
     }
   }
+
+  Future<Riddle> getRiddleById(String riddleId) async {
+    final docSnapshot = await _db.collection('riddles').doc(riddleId).get();
+    if (docSnapshot.exists) {
+      return Riddle.fromMap(
+        docSnapshot.id,
+        docSnapshot.data() as Map<String, dynamic>,
+      );
+    } else {
+      throw Exception('Riddle not found');
+    }
+  }
 }

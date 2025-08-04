@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:nazokake/firebase_options.dart';
+import 'package:nazokake/pages/TermsAgreement.dart';
 import 'package:nazokake/pages/TimelineScreen.dart';
 
 void main() async {

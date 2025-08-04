@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:nazokake/model/RiddleModel.dart';
 import 'package:nazokake/pages/PostScreen.dart';
+import 'package:nazokake/pages/TermsAgreement.dart';
 import 'package:nazokake/util/FirebaseService.dart';
 import 'package:nazokake/util/GetDeviceId.dart';
 import 'package:nazokake/widgets/RiddleCard.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum SortOption { newest, mostLiked, onlyMine, saved }
 
@@ -16,6 +18,40 @@ class TimelineScreen extends StatefulWidget {
 
 class _TimelineScreenState extends State<TimelineScreen> {
   SortOption _sort = SortOption.newest;
+  bool _isAgreementChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAgreement();
+  }
+
+  Future<void> _checkAgreement() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasAgreed = prefs.getBool('agreed_to_terms') ?? false;
+
+    if (!hasAgreed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => TermsAgreementDialog(
+            onAgreed: () async {
+              await prefs.setBool('agreed_to_terms', true);
+              Navigator.of(context).pop(); // ダイアログを閉じる
+              setState(() {
+                _isAgreementChecked = true;
+              });
+            },
+          ),
+        );
+      });
+    } else {
+      setState(() {
+        _isAgreementChecked = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +69,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
         actions: [
           PopupMenuButton<SortOption>(
             onSelected: (value) => setState(() => _sort = value),
+            initialValue: _sort,
+            icon: const Icon(Icons.sort),
             itemBuilder: (context) => [
               const PopupMenuItem(value: SortOption.newest, child: Text("最新順")),
               const PopupMenuItem(
