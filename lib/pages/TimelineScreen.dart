@@ -55,14 +55,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(
-      context,
-    ).colorScheme.primary; // primaryColor を取得
-    final secondaryColor = Theme.of(
-      context,
-    ).colorScheme.secondary; // secondaryColor を取得
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final secondaryColor = Theme.of(context).colorScheme.secondary;
+
     return Scaffold(
-      backgroundColor: secondaryColor, // 背景色を白に設定
+      backgroundColor: secondaryColor,
       appBar: AppBar(
         title: const Text("なぞかけタイムライン"),
         backgroundColor: primaryColor,
@@ -87,28 +84,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
               ),
             ],
           ),
-          // 遊び方ボタン
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("遊び方"),
-                  content: const Text(
-                    "なぞかけを投稿して、みんなと楽しもう！\n\n"
-                    "タップで答えを表示\nいいねで応援できます。\n保存すればすぐに見返すことができます\n\n引用機能も実装予定！",
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("閉じる"),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
         ],
       ),
       body: FutureBuilder<String>(
@@ -118,22 +93,53 @@ class _TimelineScreenState extends State<TimelineScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return StreamBuilder<List<Riddle>>(
-            stream: _sort == SortOption.onlyMine
-                ? FirestoreService().getMyRiddles(deviceUUIDSnapshot.data!)
-                : _sort == SortOption.saved
-                ? FirestoreService().getSavedRiddles(deviceUUIDSnapshot.data!)
-                : FirestoreService().getRiddlesSorted(_sort),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+          final deviceId = deviceUUIDSnapshot.data!;
+
+          return FutureBuilder<Map<String, List<String>>>(
+            future: _getFilteredIds(deviceId),
+            builder: (context, filterSnapshot) {
+              if (!filterSnapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final riddles = snapshot.data!;
-              return ListView.builder(
-                itemCount: riddles.length,
-                itemBuilder: (context, index) {
-                  return RiddleCard(riddle: riddles[index]);
+              final hiddenRiddleIds = filterSnapshot.data!['hiddenRiddles']!;
+              final blockedUserIds = filterSnapshot.data!['blockedUsers']!;
+
+              return StreamBuilder<List<Riddle>>(
+                stream: _sort == SortOption.onlyMine
+                    ? FirestoreService().getMyRiddles(deviceId)
+                    : _sort == SortOption.saved
+                    ? FirestoreService().getSavedRiddles(deviceId)
+                    : FirestoreService().getRiddlesSorted(_sort),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // フィルタリング処理
+                  final riddles = snapshot.data!
+                      .where(
+                        (riddle) =>
+                            !hiddenRiddleIds.contains(riddle.id) &&
+                            !blockedUserIds.contains(riddle.postDeviceId),
+                      )
+                      .toList();
+
+                  if (riddles.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "表示する投稿がありません。",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: riddles.length,
+                    itemBuilder: (context, index) {
+                      return RiddleCard(riddle: riddles[index]);
+                    },
+                  );
                 },
               );
             },
@@ -151,5 +157,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<Map<String, List<String>>> _getFilteredIds(String deviceId) async {
+    final hiddenRiddles = await FirestoreService().getHiddenRiddleIds(deviceId);
+    final blockedUsers = await FirestoreService().getBlockedUserIds(deviceId);
+    return {'hiddenRiddles': hiddenRiddles, 'blockedUsers': blockedUsers};
   }
 }

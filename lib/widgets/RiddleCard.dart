@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nazokake/model/RiddleModel.dart';
 import 'package:nazokake/model/kansu.dart';
+import 'package:nazokake/pages/TimelineScreen.dart';
+import 'package:nazokake/pages/TimelineForUser.dart';
 import 'package:nazokake/util/FirebaseService.dart';
 import 'package:nazokake/util/GetDeviceId.dart';
 
@@ -45,6 +48,15 @@ class _RiddleCardState extends State<RiddleCard> {
   Future<void> saveRiddle() async {
     await FirestoreService().saveRiddle(widget.riddle.id, _deviceId);
     setState(() {}); // 保存後に再描画
+  }
+
+  void _navigateToUserRiddles(String postDeviceId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TimelineForUser(postDeviceId: postDeviceId),
+      ),
+    );
   }
 
   @override
@@ -156,16 +168,69 @@ class _RiddleCardState extends State<RiddleCard> {
                           },
                         );
                       } else if (value == '通報') {
-                        // 通報処理
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('通報機能（未実装）')),
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('投稿を通報しますか？'),
+                              content: const Text('不適切な内容が含まれている場合は通報してください。'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // ダイアログを閉じる
+                                  },
+                                  child: const Text(
+                                    'キャンセル',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.of(context).pop(); // ダイアログを閉じる
+                                    // 通報処理
+                                    await FirestoreService().reportRiddle(
+                                      widget.riddle.id,
+                                      _deviceId,
+                                      '不適切な内容', // Add the missing positional argument
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('投稿を通報しました'),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    '通報',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         );
+                      } else if (value == '非表示') {
+                        // 非表示処理
+                        await FirestoreService().hideRiddle(
+                          widget.riddle.id,
+                          _deviceId,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('投稿を非表示にしました')),
+                        );
+                      } else if (value == '他の投稿') {
+                        // このユーザーの他の投稿を表示
+                        _navigateToUserRiddles(widget.riddle.postDeviceId);
                       }
                     },
                     itemBuilder: (BuildContext context) => [
                       if (widget.riddle.postDeviceId == _deviceId)
                         const PopupMenuItem(value: '削除', child: Text('削除')),
-                      const PopupMenuItem(value: '通報', child: Text('通報')),
+                      if (widget.riddle.postDeviceId != _deviceId)
+                        const PopupMenuItem(value: '通報', child: Text('通報')),
+                      if (widget.riddle.postDeviceId != _deviceId)
+                        const PopupMenuItem(value: '非表示', child: Text('非表示')),
+                      if (widget.riddle.postDeviceId != _deviceId)
+                        const PopupMenuItem(value: '他の投稿', child: Text('他の投稿')),
                     ],
                   ),
                 ],
@@ -213,19 +278,19 @@ class _RiddleCardState extends State<RiddleCard> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // 引用
-                      IconButton(
-                        onPressed: () {
-                          // 保存機能の実装
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('引用ボタン（未実装）')),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.format_quote,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      //IconButton(
+                      //  onPressed: () {
+                      //    // 保存機能の実装
+                      //    ScaffoldMessenger.of(context).showSnackBar(
+                      //      const SnackBar(content: Text('引用ボタン（未実装）')),
+                      //    );
+                      //  },
+                      //  icon: const Icon(
+                      //    Icons.format_quote,
+                      //    size: 16,
+                      //    color: Colors.grey,
+                      //  ),
+                      //),
                       //　保存
                       FutureBuilder<bool>(
                         future: FirestoreService().isRiddleSaved(

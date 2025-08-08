@@ -23,6 +23,19 @@ class _PostScreenState extends State<PostScreen> {
 
     if (first.isEmpty || second.isEmpty || answer.isEmpty) return;
 
+    // 禁止文字の対応
+    if (prohibitedWords.any(
+      (word) =>
+          first.contains(word) ||
+          second.contains(word) ||
+          answer.contains(word),
+    )) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('禁止文字が含まれています。')));
+      return;
+    }
+
     final question1 = first;
     final question2 = second;
     final fullAnswer = answer;

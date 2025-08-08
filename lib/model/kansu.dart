@@ -76,3 +76,16 @@ final List<String> nounsNN = [
   'お金',
   '健康',
 ];
+
+// 禁止ワードリスト（必要に応じて拡張可）
+final List<String> prohibitedWords = [
+  'ちんこ',
+  'まんこ',
+  'うんこ',
+  'しね',
+  'fuck',
+  '死ね',
+  'sex',
+  'セックス',
+  'ち○こ', // 回避的表記対策も追加可能
+];

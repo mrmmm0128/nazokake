@@ -66,6 +66,44 @@ class FirestoreService {
     }, SetOptions(merge: true));
   }
 
+  // 他の人のなぞかけを非表示にする
+  Future<void> hideRiddle(String riddleId, String deviceId) async {
+    final docRef = _db.collection('hidden_riddles').doc(deviceId);
+    final docSnapshot = await docRef.get();
+
+    if (docSnapshot.exists) {
+      // すでにある場合は arrayUnion だけでOK（重複チェック不要）
+      await docRef.update({
+        'riddles': FieldValue.arrayUnion([riddleId]),
+      });
+    } else {
+      // なければ新規作成
+      await docRef.set({
+        'deviceId': deviceId,
+        'riddles': [riddleId],
+      });
+    }
+  }
+
+  // ユーザーをブロックする
+  Future<void> blockUser(String deviceId, String targetDeviceId) async {
+    final docRef = _db.collection('blockcollection').doc(deviceId);
+    final docSnapshot = await docRef.get();
+
+    if (docSnapshot.exists) {
+      // すでにある場合は arrayUnion だけでOK（重複チェック不要）
+      await docRef.update({
+        'blockedUsers': FieldValue.arrayUnion([targetDeviceId]),
+      });
+    } else {
+      // なければ新規作成
+      await docRef.set({
+        'deviceId': deviceId,
+        'blockedUsers': [targetDeviceId],
+      });
+    }
+  }
+
   // 謎かけが保存されているか確認
   Future<bool> isRiddleSaved(String riddleId, String deviceId) async {
     final docRef = _db.collection('riddle_device').doc(deviceId);
@@ -120,6 +158,19 @@ class FirestoreService {
     );
   }
 
+  // 特定のユーザーのナゾカケを取得
+  Stream<List<Riddle>> getRiddlesByUser(String deviceId) {
+    return _db
+        .collection('riddles')
+        .where('post_deviceId', isEqualTo: deviceId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Riddle.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
+  }
+
   Future<void> deleteRiddle(String riddleId) async {
     await _db.collection('riddles').doc(riddleId).delete();
   }
@@ -149,5 +200,49 @@ class FirestoreService {
     } else {
       throw Exception('Riddle not found');
     }
+  }
+
+  Future<List<String>> getHiddenRiddleIds(String deviceId) async {
+    final docSnapshot = await _db
+        .collection('hidecollection')
+        .doc(deviceId)
+        .get();
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+      if (data != null && data['riddles'] != null) {
+        return List<String>.from(data['riddles']);
+      }
+    }
+    return [];
+  }
+
+  // ブロックしたユーザーのナゾカケを取得
+  Future<List<String>> getBlockedUserIds(String deviceId) async {
+    final docSnapshot = await _db
+        .collection('blockcollection')
+        .doc(deviceId)
+        .get();
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+      if (data != null && data['blockedUsers'] != null) {
+        return List<String>.from(data['blockedUsers']);
+      }
+    }
+    return [];
+  }
+
+  // 通報内容を報告
+  Future<void> reportRiddle(
+    String riddleId,
+    String reporterDeviceID,
+    String reason,
+  ) async {
+    // reportsコレクションに報告内容を追加
+    await _db.collection('reports').add({
+      'riddleId': riddleId,
+      'reason': reason,
+      'reporterDeviceId': reporterDeviceID,
+      'timestamp': Timestamp.now(),
+    });
   }
 }

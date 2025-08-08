@@ -12,7 +12,7 @@ class TermsAgreementDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: secondaryColor,
-      title: Text("利用規約への同意", style: TextStyle(color: primaryColor)),
+      title: Text("利用規約への同意", style: TextStyle(color: Colors.black)),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -24,7 +24,7 @@ class TermsAgreementDialog extends StatelessWidget {
               "・不適切ななぞかけを確認した際には通報ボタンより報告お願いいたします。\n"
               "・違反が確認された場合、対象となるなぞかけを削除させていただきます。\n\n"
               "これらの規約に同意のうえ、なぞかけSNSをお楽しみください。",
-              style: TextStyle(color: primaryColor, fontSize: 14),
+              style: TextStyle(color: Colors.black, fontSize: 14),
             ),
           ],
         ),
@@ -32,7 +32,7 @@ class TermsAgreementDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: onAgreed,
-          child: Text("同意する", style: TextStyle(color: primaryColor)),
+          child: Text("同意する", style: TextStyle(color: Colors.black)),
         ),
       ],
     );
