@@ -10,7 +10,13 @@ import 'package:nazokake/util/GetDeviceId.dart';
 
 class RiddleCard extends StatefulWidget {
   final Riddle riddle;
-  const RiddleCard({super.key, required this.riddle});
+  final ValueChanged<String>? onHide; // ★ 追加
+
+  const RiddleCard({
+    super.key,
+    required this.riddle,
+    this.onHide, // ★ 追加
+  });
 
   @override
   State<RiddleCard> createState() => _RiddleCardState();
@@ -223,14 +229,11 @@ class _RiddleCardState extends State<RiddleCard> {
                           },
                         );
                       } else if (value == '非表示') {
-                        // 非表示処理
-                        await FirestoreService().hideRiddle(
-                          widget.riddle.id,
-                          _deviceId,
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('投稿を非表示にしました')),
-                        );
+                        // ① 先にUIから消す（親に通知）
+                        widget.onHide?.call(widget.riddle.id);
+
+                        // ❌ 下の行は意味がないので削除（画面遷移していない）
+                        // MaterialPageRoute(builder: (context) => TimelineScreen());
                       } else if (value == '他の投稿') {
                         // このユーザーの他の投稿を表示
                         final result = await Navigator.push(

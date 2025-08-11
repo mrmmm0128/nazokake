@@ -19,6 +19,7 @@ class TimelineScreen extends StatefulWidget {
 class _TimelineScreenState extends State<TimelineScreen> {
   SortOption _sort = SortOption.newest;
   bool _isAgreementChecked = false;
+  final Set<String> _hiddenLocal = <String>{};
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       appBar: AppBar(
         title: const Text("なぞかけタイムライン"),
         backgroundColor: primaryColor,
+        automaticallyImplyLeading: false,
         actions: [
           PopupMenuButton<SortOption>(
             onSelected: (value) => setState(() => _sort = value),
@@ -128,8 +130,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final hiddenRiddleIds = filterSnapshot.data!['hiddenRiddles']!;
-              final blockedUserIds = filterSnapshot.data!['blockedUsers']!;
+              final hiddenFromServer =
+                  filterSnapshot.data?['hiddenRiddles'] ?? const <String>[];
+              final blockedUserIds =
+                  filterSnapshot.data?['blockedUsers'] ?? const <String>[];
+              final hiddenAll = {...hiddenFromServer, ..._hiddenLocal};
 
               return StreamBuilder<List<Riddle>>(
                 stream: _sort == SortOption.onlyMine
@@ -146,7 +151,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   final riddles = snapshot.data!
                       .where(
                         (riddle) =>
-                            !hiddenRiddleIds.contains(riddle.id) &&
+                            !hiddenAll.contains(riddle.id) &&
                             !blockedUserIds.contains(riddle.postDeviceId),
                       )
                       .toList();
@@ -167,7 +172,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     child: ListView.builder(
                       itemCount: riddles.length,
                       itemBuilder: (context, index) {
-                        return RiddleCard(riddle: riddles[index]);
+                        final r = riddles[index];
+                        return RiddleCard(
+                          key: ValueKey(r.id),
+                          riddle: r,
+                          onHide: (id) {
+                            setState(() {
+                              _hiddenLocal.add(id); // ← 即UIから消える
+                            });
+                          },
+                        );
                       },
                     ),
                   );
