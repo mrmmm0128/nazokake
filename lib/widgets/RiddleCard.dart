@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nazokake/model/RiddleModel.dart';
 import 'package:nazokake/model/kansu.dart';
+import 'package:nazokake/pages/EditRiddle.dart';
 import 'package:nazokake/pages/TimelineScreen.dart';
 import 'package:nazokake/pages/TimelineForUser.dart';
 import 'package:nazokake/util/FirebaseService.dart';
@@ -167,6 +168,19 @@ class _RiddleCardState extends State<RiddleCard> {
                             );
                           },
                         );
+                      } else if (value == '編集') {
+                        // 編集画面に遷移
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditScreen(
+                              editRiddlesId: widget.riddle.id,
+                              firstTopic: widget.riddle.question1,
+                              secondTopic: widget.riddle.question2,
+                              answer: widget.riddle.answer,
+                            ),
+                          ),
+                        );
                       } else if (value == '通報') {
                         showDialog(
                           context: context,
@@ -219,12 +233,26 @@ class _RiddleCardState extends State<RiddleCard> {
                         );
                       } else if (value == '他の投稿') {
                         // このユーザーの他の投稿を表示
-                        _navigateToUserRiddles(widget.riddle.postDeviceId);
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TimelineForUser(
+                              postDeviceId: widget.riddle.postDeviceId,
+                            ),
+                          ),
+                        );
+
+                        if (result == true) {
+                          // データを再取得
+                          setState(() {});
+                        }
                       }
                     },
                     itemBuilder: (BuildContext context) => [
                       if (widget.riddle.postDeviceId == _deviceId)
                         const PopupMenuItem(value: '削除', child: Text('削除')),
+                      if (widget.riddle.postDeviceId == _deviceId)
+                        const PopupMenuItem(value: '編集', child: Text('編集')),
                       if (widget.riddle.postDeviceId != _deviceId)
                         const PopupMenuItem(value: '通報', child: Text('通報')),
                       if (widget.riddle.postDeviceId != _deviceId)

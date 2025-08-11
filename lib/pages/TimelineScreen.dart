@@ -24,6 +24,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   void initState() {
     super.initState();
     _checkAgreement();
+    setState(() {});
   }
 
   Future<void> _checkAgreement() async {
@@ -84,6 +85,31 @@ class _TimelineScreenState extends State<TimelineScreen> {
               ),
             ],
           ),
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("遊び方"),
+                  backgroundColor: secondaryColor,
+                  content: const Text(
+                    "なぞかけを投稿して、みんなと楽しもう！\n\n"
+                    "タップで答えを表示\nいいねで応援できます。\n保存しておけば、いつでもなぞかけを見返すことができます。\n\n",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "閉じる",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: FutureBuilder<String>(
@@ -134,11 +160,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     );
                   }
 
-                  return ListView.builder(
-                    itemCount: riddles.length,
-                    itemBuilder: (context, index) {
-                      return RiddleCard(riddle: riddles[index]);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      setState(() {}); // データを再取得
                     },
+                    child: ListView.builder(
+                      itemCount: riddles.length,
+                      itemBuilder: (context, index) {
+                        return RiddleCard(riddle: riddles[index]);
+                      },
+                    ),
                   );
                 },
               );

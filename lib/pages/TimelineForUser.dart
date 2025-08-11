@@ -37,11 +37,10 @@ class _TimelineForUserState extends State<TimelineForUser> {
                 ),
               ];
             },
-            onSelected: (String value) {
+            onSelected: (String value) async {
               if (value == 'block') {
                 // ブロック機能の実装
-                // ここでは、ブロック処理を行うためのダイアログを表示します。
-                showDialog(
+                final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
@@ -52,7 +51,7 @@ class _TimelineForUserState extends State<TimelineForUser> {
                       actions: [
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); // ダイアログを閉じる
+                            Navigator.of(context).pop(false); // ダイアログを閉じる
                           },
                           child: const Text(
                             'キャンセル',
@@ -61,15 +60,7 @@ class _TimelineForUserState extends State<TimelineForUser> {
                         ),
                         TextButton(
                           onPressed: () async {
-                            // ブロック処理をここに実装
-                            FirestoreService().blockUser(
-                              await deviceId,
-                              widget.postDeviceId,
-                            );
-                            Navigator.of(context).pop(); // ダイアログを閉じる
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ユーザーをブロックしました。')),
-                            );
+                            Navigator.of(context).pop(true); // ダイアログを閉じる
                           },
                           child: const Text(
                             'ブロック',
@@ -80,6 +71,23 @@ class _TimelineForUserState extends State<TimelineForUser> {
                     );
                   },
                 );
+
+                if (confirmed == true) {
+                  // ブロック処理を実行
+                  await FirestoreService().blockUser(
+                    await deviceId,
+                    widget.postDeviceId,
+                  );
+
+                  // SnackBar を表示
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('ユーザーをブロックしました。')),
+                  );
+
+                  // 元の画面に戻る
+                  Navigator.pop(context, true); // true を返して元の画面で再取得をトリガー
+                  setState(() {});
+                }
               }
             },
           ),
@@ -103,11 +111,16 @@ class _TimelineForUserState extends State<TimelineForUser> {
             );
           }
 
-          return ListView.builder(
-            itemCount: riddles.length,
-            itemBuilder: (context, index) {
-              return RiddleCard(riddle: riddles[index]);
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {}); // データを再取得
             },
+            child: ListView.builder(
+              itemCount: riddles.length,
+              itemBuilder: (context, index) {
+                return RiddleCard(riddle: riddles[index]);
+              },
+            ),
           );
         },
       ),

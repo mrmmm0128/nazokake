@@ -145,17 +145,23 @@ class FirestoreService {
     Query query = _db.collection('riddles');
     if (sort == SortOption.newest) {
       query = query.orderBy('timestamp', descending: true);
-    } else {
-      query = query.orderBy('likes', descending: true);
     }
 
-    return query.snapshots().map(
-      (snapshot) => snapshot.docs
+    return query.snapshots().map((snapshot) {
+      final riddles = snapshot.docs
           .map(
             (doc) => Riddle.fromMap(doc.id, doc.data() as Map<String, dynamic>),
           )
-          .toList(),
-    );
+          .toList();
+
+      if (sort == SortOption.mostLiked) {
+        riddles.sort(
+          (a, b) => b.likes.length.compareTo(a.likes.length),
+        ); // クライアント側でソート
+      }
+
+      return riddles;
+    });
   }
 
   // 特定のユーザーのナゾカケを取得
@@ -204,7 +210,7 @@ class FirestoreService {
 
   Future<List<String>> getHiddenRiddleIds(String deviceId) async {
     final docSnapshot = await _db
-        .collection('hidecollection')
+        .collection('hidden_riddles')
         .doc(deviceId)
         .get();
     if (docSnapshot.exists) {
@@ -214,6 +220,21 @@ class FirestoreService {
       }
     }
     return [];
+  }
+
+  // なぞかけを編集する
+  Future<void> editRiddle(
+    String riddleId,
+    String question1,
+    String question2,
+    String answer,
+  ) async {
+    await _db.collection('riddles').doc(riddleId).update({
+      'question1': question1,
+      'question2': question2,
+      'answer': answer,
+      'timestamp': Timestamp.now(),
+    });
   }
 
   // ブロックしたユーザーのナゾカケを取得
